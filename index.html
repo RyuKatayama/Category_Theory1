@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>第1部「圏論とは何か」</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .presentation-container {
+            width: 1123px; /* A4 horizontal */
+            height: 794px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide {
+            width: 100%;
+            height: 100%;
+            display: none;
+            padding: 50px 60px 140px 60px; /* 下部パディングをさらに増加、上部を少し減らす */
+            position: relative;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            box-sizing: border-box;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slide h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 25px; /* マージンを少し減らす */
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .slide h2 {
+            font-size: 2em;
+            color: #34495e;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .slide h3 {
+            font-size: 1.4em;
+            color: #2980b9;
+            margin: 15px 0 10px 0; /* マージンを調整 */
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-bottom: 30px; /* ナビゲーションとの余白をさらに増加 */
+            max-height: calc(100vh - 200px); /* 最大高さを制限 */
+            overflow-y: auto; /* 必要に応じてスクロール */
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .three-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            height: 100%;
+            align-items: center;
+        }
+
+        .example-box {
+            background: white;
+            padding: 20px; /* パディングを少し減らす */
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 5px solid #3498db;
+            margin-bottom: 15px; /* マージンを減らす */
+        }
+
+        .formula-box {
+            background: #ecf0f1;
+            padding: 15px; /* パディングを減らす */
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0; /* マージンを減らす */
+            border: 2px solid #bdc3c7;
+        }
+
+        .arrow {
+            font-size: 2em;
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .bullet-point {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin: 8px 0; /* マージンを減らす */
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .bullet-point::before {
+            content: "●";
+            color: #3498db;
+            position: absolute;
+            left: 0;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #2980b9;
+        }
+
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            background: #34495e;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        .station-diagram {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 15px; /* パディングを減らす */
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            margin: 15px 0; /* マージンを減らす */
+        }
+
+        .station {
+            width: 60px;
+            height: 60px;
+            background: #3498db;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .route-arrow {
+            flex: 1;
+            height: 4px;
+            background: #e74c3c;
+            margin: 0 10px;
+            position: relative;
+        }
+
+        .route-arrow::after {
+            content: "▶";
+            position: absolute;
+            right: -8px;
+            top: -8px;
+            color: #e74c3c;
+            font-size: 16px;
+        }
+
+        .functor-diagram {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .diagram-box {
+            display: inline-block;
+            padding: 15px 25px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            margin: 10px;
+            font-weight: bold;
+        }
+
+        .title-slide {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .title-slide h1 {
+            font-size: 3.5em;
+            color: white;
+            margin-bottom: 40px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+        }
+
+        .title-slide .subtitle {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .commutative-diagram {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            grid-template-rows: 1fr auto 1fr;
+            gap: 15px; /* ギャップを減らす */
+            align-items: center;
+            justify-items: center;
+            background: white;
+            padding: 25px; /* パディングを少し減らす */
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 15px 0; /* マージンを減らす */
+        }
+
+        .diagram-node {
+            padding: 15px 20px;
+            background: #ecf0f1;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            min-width: 120px;
+        }
+
+        .diagram-arrow-h {
+            font-size: 1.5em;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .diagram-arrow-v {
+            font-size: 1.5em;
+            color: #e74c3c;
+            font-weight: bold;
+            writing-mode: vertical-lr;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <div class="content">
+                <h1>圏論とは何か</h1>
+                <div class="subtitle">地図の例で学ぶ「関係性の数学」</div>
+                <div class="subtitle">～異分野統合理論と心理学理論統合への道筋～</div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Introduction -->
+        <div class="slide">
+            <h1>なぜ「関係性の数学」が必要か？</h1>
+            <div class="content two-column">
+                <div class="example-box">
+                    <h3>従来の数学</h3>
+                    <div class="bullet-point">「もの」そのものに注目</div>
+                    <div class="bullet-point">数、図形、関数など</div>
+                    <div class="bullet-point">静的な構造の分析</div>
+                    <div class="bullet-point">個別の対象の性質</div>
+                </div>
+                <div class="example-box">
+                    <h3>圏論</h3>
+                    <div class="bullet-point">「もの同士の関係」に注目</div>
+                    <div class="bullet-point">変換、写像、対応関係</div>
+                    <div class="bullet-point">動的なプロセスの記述</div>
+                    <div class="bullet-point">構造間の共通パターン</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Daily Example -->
+        <div class="slide">
+            <h1>日常例：料理レシピと圏論</h1>
+            <div class="content">
+                <div class="station-diagram">
+                    <div class="station">材料A</div>
+                    <div class="route-arrow"></div>
+                    <div class="station">調理工程</div>
+                    <div class="route-arrow"></div>
+                    <div class="station">完成品</div>
+                </div>
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>圏論の視点</h3>
+                        <div class="bullet-point"><strong>対象</strong>：材料、完成品</div>
+                        <div class="bullet-point"><strong>射</strong>：調理手順</div>
+                        <div class="bullet-point"><strong>合成</strong>：手順の組み合わせ</div>
+                        <div class="bullet-point"><strong>恒等射</strong>：「何もしない」</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>心理学への応用</h3>
+                        <div class="bullet-point">心的状態の変容プロセス</div>
+                        <div class="bullet-point">治療的介入の連続</div>
+                        <div class="bullet-point">発達段階の移行</div>
+                        <div class="bullet-point">理論間の翻訳関係</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Category Definition -->
+        <div class="slide">
+            <h1>圏の基本定義：4つの要素</h1>
+            <div class="content">
+                <div class="two-column">
+                    <div>
+                        <div class="example-box">
+                            <h3>1. 対象（Objects）</h3>
+                            <div class="bullet-point">「視点」「状態」「位置」</div>
+                            <div class="formula-box">
+                                心理学例：<br>
+                                • 心的状態<br>
+                                • 発達段階<br>
+                                • 関係性のポジション
+                            </div>
+                        </div>
+                        <div class="example-box">
+                            <h3>3. 射の合成（Composition）</h3>
+                            <div class="bullet-point">プロセスの段階的重ね合わせ</div>
+                            <div class="formula-box">
+                                例：「気づき→受容→統合」<br>
+                                の3段階変容プロセス
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="example-box">
+                            <h3>2. 射（Morphisms）</h3>
+                            <div class="bullet-point">「変化」「プロセス」「関係」</div>
+                            <div class="formula-box">
+                                心理学例：<br>
+                                • 意識の変容プロセス<br>
+                                • 学習による発達<br>
+                                • 治療的介入
+                            </div>
+                        </div>
+                        <div class="example-box">
+                            <h3>4. 恒等射（Identity）</h3>
+                            <div class="bullet-point">「変化しない」状態</div>
+                            <div class="formula-box">
+                                例：現状維持、防衛機制<br>
+                                その場に留まる状態
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Tokyo Transport Category -->
+        <div class="slide">
+            <h1>東京交通圏の例</h1>
+            <div class="content">
+                <div class="example-box">
+                    <h3>射の基本構造</h3>
+                    <div class="formula-box">
+                        射 f: A → B<br>
+                        • 始点（domain）：出発地 A<br>
+                        • 終点（codomain）：到着地 B<br>
+                        • 射そのもの：移動方法・経路<br><br>
+                        具体例：<br>
+                        f: 渋谷駅 → 新宿駅（JR山手線で7分）<br>
+                        g: 新宿駅 → 池袋駅（JR山手線で6分）
+                    </div>
+                </div>
+                <div class="station-diagram">
+                    <div class="station">渋谷</div>
+                    <div class="route-arrow"></div>
+                    <div class="station">新宿</div>
+                    <div class="route-arrow"></div>
+                    <div class="station">池袋</div>
+                    <div class="route-arrow"></div>
+                    <div class="station">上野</div>
+                </div>
+                <div class="example-box">
+                    <h3>複数の射（異なる経路）</h3>
+                    <div class="formula-box">
+                        渋谷 → 新宿の射：<br>
+                        • f₁: JR山手線（7分）<br>
+                        • f₂: JR埼京線（7分）<br>
+                        • f₃: 東京メトロ副都心線（5分）<br>
+                        • f₄: 徒歩（45分）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Composition -->
+        <div class="slide">
+            <h1>射の合成（Composition）</h1>
+            <div class="content">
+                <div class="example-box">
+                    <h3>合成の基本ルール</h3>
+                    <div class="formula-box">
+                        射 f: A → B と 射 g: B → C があるとき<br>
+                        合成射 g∘f: A → C が定義される
+                    </div>
+                </div>
+                <div class="station-diagram">
+                    <div class="station">渋谷</div>
+                    <div class="route-arrow" style="background: #27ae60;"></div>
+                    <div class="station">新宿</div>
+                    <div class="route-arrow" style="background: #27ae60;"></div>
+                    <div class="station">池袋</div>
+                </div>
+                <div class="formula-box" style="text-align: center; font-size: 1.2em;">
+                    f: 渋谷 → 新宿（JR山手線）<br>
+                    g: 新宿 → 池袋（JR山手線）<br>
+                    <div class="arrow">↓</div>
+                    g∘f: 渋谷 → 池袋（JR山手線経由新宿）
+                </div>
+                <div class="example-box">
+                    <h3>結合法則</h3>
+                    <div class="formula-box">
+                        (h∘g)∘f = h∘(g∘f)<br>
+                        どちらも同じ「山手線一周ルート」
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Identity -->
+        <div class="slide">
+            <h1>恒等射（Identity Morphism）</h1>
+            <div class="content">
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>各駅の恒等射</h3>
+                        <div class="formula-box">
+                            id_渋谷: 渋谷 → 渋谷<br>
+                            （その場に留まる）<br><br>
+                            id_新宿: 新宿 → 新宿<br>
+                            （駅で待機）
+                        </div>
+                        <div class="bullet-point">移動しない状態</div>
+                        <div class="bullet-point">現状維持</div>
+                        <div class="bullet-point">「何もしない」操作</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>恒等射の性質</h3>
+                        <div class="formula-box">
+                            任意の射 f: A → B に対して<br><br>
+                            f ∘ id_A = f = id_B ∘ f
+                        </div>
+                        <div class="bullet-point">合成しても変化なし</div>
+                        <div class="bullet-point">射の「単位元」的役割</div>
+                        <div class="bullet-point">心理学では防衛機制に対応</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Functor Intro -->
+        <div class="slide">
+            <h1>関手（Functor）：構造を保つ写像</h1>
+            <div class="content">
+                <div class="example-box">
+                    <h3>関手の定義</h3>
+                    <div class="formula-box">
+                        F: C → D（圏Cから圏Dへの関手）<br><br>
+                        • 対象の写像：C内の対象 → D内の対象<br>
+                        • 射の写像：C内の射 → D内の射<br>
+                        • 合成保存：F(f∘g) = F(f)∘F(g)<br>
+                        • 恒等射保存：F(id_x) = id_F(x)
+                    </div>
+                </div>
+                <div class="three-column">
+                    <div class="functor-diagram">
+                        <h3>路線図圏</h3>
+                        <div class="diagram-box">駅名</div>
+                        <div class="diagram-box">路線での移動</div>
+                    </div>
+                    <div class="functor-diagram">
+                        <h3>GPS圏</h3>
+                        <div class="diagram-box">GPS座標</div>
+                        <div class="diagram-box">座標間移動</div>
+                    </div>
+                    <div class="functor-diagram">
+                        <h3>住所圏</h3>
+                        <div class="diagram-box">住所表記</div>
+                        <div class="diagram-box">道順案内</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Map System Functors -->
+        <div class="slide">
+            <h1>地図システムの関手</h1>
+            <div class="content">
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>関手F: 路線図 → GPS</h3>
+                        <div class="formula-box">
+                            対象の写像：<br>
+                            F(渋谷) = (35.6580, 139.7016)<br>
+                            F(新宿) = (35.6896, 139.7006)<br><br>
+                            射の写像：<br>
+                            F(山手線ルート) = GPS軌跡データ
+                        </div>
+                    </div>
+                    <div class="example-box">
+                        <h3>関手G: 路線図 → 住所</h3>
+                        <div class="formula-box">
+                            対象の写像：<br>
+                            G(渋谷) = "渋谷区道玄坂1-1"<br>
+                            G(新宿) = "新宿区新宿3-38-1"<br><br>
+                            射の写像：<br>
+                            G(山手線ルート) = 道順案内
+                        </div>
+                    </div>
+                </div>
+                <div class="example-box">
+                    <h3>構造保存の例</h3>
+                    <div class="formula-box">
+                        合成保存：F(g∘f) = F(g)∘F(f)<br><br>
+                        f: 渋谷 → 新宿, g: 新宿 → 池袋のとき<br>
+                        F(g∘f) = 渋谷GPS → 池袋GPS（直通ルート）<br>
+                        F(g)∘F(f) = (渋谷GPS → 新宿GPS) → 池袋GPS<br><br>
+                        両方とも同じGPS軌跡になる
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 10: Natural Transformation -->
+        <div class="slide">
+            <h1>自然変換（Natural Transformation）</h1>
+            <div class="content">
+                <div class="example-box">
+                    <h3>GPS座標 ⇒ 住所変換</h3>
+                    <div class="formula-box">
+                        自然変換 η: F ⇒ G<br>
+                        F: 路線図 → GPS, G: 路線図 → 住所<br><br>
+                        各駅（対象）xに対して：<br>
+                        η_x: F(x) → G(x)<br>
+                        つまり：GPS座標 → 住所表記
+                    </div>
+                </div>
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>各点での変換</h3>
+                        <div class="formula-box">
+                            η_渋谷: (35.6580, 139.7016)<br>
+                            → "渋谷区道玄坂1-1"<br><br>
+                            η_新宿: (35.6896, 139.7006)<br>
+                            → "新宿区新宿3-38-1"
+                        </div>
+                    </div>
+                    <div class="example-box">
+                        <h3>重要な性質</h3>
+                        <div class="bullet-point">どんな経路でも変換結果が一貫</div>
+                        <div class="bullet-point">構造的関係が保たれる</div>
+                        <div class="bullet-point">選択によらない一意性</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 11: Commutativity -->
+        <div class="slide">
+            <h1>自然変換の可換性</h1>
+            <div class="content">
+                <div class="commutative-diagram">
+                    <div class="diagram-node">F(渋谷)<br>GPS座標</div>
+                    <div class="diagram-arrow-h">F(f) →</div>
+                    <div class="diagram-node">F(新宿)<br>GPS座標</div>
+                    
+                    <div class="diagram-arrow-v">η_渋谷<br>↓</div>
+                    <div></div>
+                    <div class="diagram-arrow-v">η_新宿<br>↓</div>
+                    
+                    <div class="diagram-node">G(渋谷)<br>住所</div>
+                    <div class="diagram-arrow-h">G(f) →</div>
+                    <div class="diagram-node">G(新宿)<br>住所</div>
+                </div>
+                <div class="formula-box" style="text-align: center;">
+                    η_新宿 ∘ F(f) = G(f) ∘ η_渋谷<br><br>
+                    どの経路で変換しても同じ結果！
+                </div>
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>パターン1：直接変換</h3>
+                        <div class="bullet-point">渋谷GPS → 渋谷住所</div>
+                        <div class="bullet-point">↓ 移動</div>
+                        <div class="bullet-point">新宿GPS → 新宿住所</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>パターン2：移動後変換</h3>
+                        <div class="bullet-point">渋谷GPS → 新宿GPS</div>
+                        <div class="bullet-point">↓ 変換</div>
+                        <div class="bullet-point">渋谷住所 → 新宿住所</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 12: Why Natural -->
+        <div class="slide">
+            <h1>なぜこれが「自然」なのか？</h1>
+            <div class="content">
+                <div class="three-column">
+                    <div class="example-box">
+                        <h3>構造の保存</h3>
+                        <div class="bullet-point">GPS上で隣接 ⟺ 住所上でも隣接</div>
+                        <div class="bullet-point">GPS上の距離 ⟺ 住所上での道のり</div>
+                        <div class="bullet-point">GPS上の経路 ⟺ 住所上での道順</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>選択によらない一意性</h3>
+                        <div class="bullet-point">山手線で行っても</div>
+                        <div class="bullet-point">埼京線で行っても</div>
+                        <div class="bullet-point">徒歩で行っても</div>
+                        <div class="bullet-point">GPS→住所変換の結果は同じ</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>心理学への応用</h3>
+                        <div class="formula-box">
+                            η: UFP圏 ⇒ POP圏<br><br>
+                            各心的状態xに対して：<br>
+                            η_x: UFPでの状態記述<br>
+                            → POPでの状態記述
+                        </div>
+                        <div class="bullet-point">どんな変容プロセスを経ても理論間翻訳が一貫</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 13: Psychology Application -->
+        <div class="slide">
+            <h1>心理学への応用：理論統合の基盤</h1>
+            <div class="content">
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>心理現象の特性</h3>
+                        <div class="bullet-point"><strong>関係性中心</strong>：心は関係の中で生まれる</div>
+                        <div class="bullet-point"><strong>プロセス重視</strong>：変化・発達・治癒が核心</div>
+                        <div class="bullet-point"><strong>多視点性</strong>：同じ現象を異なる理論で記述</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>圏論の利点</h3>
+                        <div class="bullet-point"><strong>構造的思考</strong>：現象の構造を明確化</div>
+                        <div class="bullet-point"><strong>理論統合</strong>：異なる理論間の翻訳可能性</div>
+                        <div class="bullet-point"><strong>プロセス記述</strong>：変化のメカニズムを厳密に表現</div>
+                        <div class="bullet-point"><strong>普遍性</strong>：理論を超えた共通パターンの発見</div>
+                    </div>
+                </div>
+                <div class="example-box">
+                    <h3>第2部・第3部への橋渡し</h3>
+                    <div class="formula-box">
+                        第2部：異分野の統合理論の圏論による横断的分析<br>
+                        • 構造構成主義（社会科学）<br>
+                        • 批判的実在論（哲学）<br>
+                        • IEEE42010（システム工学）<br>
+                        • Viewpoint = Functor による統合<br><br>
+                        第3部：統一場心理学とプロセス心理学の比較分析<br>
+                        • UFP圏とPOP圏の関手的関係<br>
+                        • 心理的エネルギー圏（PsyE）の構築<br>
+                        • 変容プロセスの普遍構造の発見<br><br>
+                        地図の座標変換 = 理論統合の数学的基盤
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 14: Summary -->
+        <div class="slide">
+            <h1>まとめ：圏論の威力</h1>
+            <div class="content">
+                <div class="two-column">
+                    <div class="example-box">
+                        <h3>構造的思考</h3>
+                        <div class="bullet-point">関係性のパターンを厳密に記述</div>
+                        <div class="bullet-point">異なるシステム間の対応関係を明確化</div>
+                        <div class="bullet-point">プロセスの普遍的構造を発見</div>
+                    </div>
+                    <div class="example-box">
+                        <h3>普遍性の発見</h3>
+                        <div class="bullet-point">地図システムの変換 = 心理理論の翻訳</div>
+                        <div class="bullet-point">共通の数学的構造が背後にある</div>
+                        <div class="bullet-point">理論を超えた統合的理解</div>
+                    </div>
+                </div>
+                <div class="example-box" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <h3 style="color: white; border-bottom-color: white;">第2部・第3部で実現されること</h3>
+                    <div class="formula-box" style="background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); color: white;">
+                        第2部：異分野の統合理論（構造構成主義・批判的実在論・IEEE42010）<br>
+                        • 工学・哲学・社会科学の圏論的統合<br>
+                        • Viewpoint = Functor という普遍的洞察<br>
+                        • 学問横断的知識転用の数学的基盤<br><br>
+                        第3部：統一場心理学とプロセス心理学の比較分析<br>
+                        • UFP圏とPOP圏の構造的関係の解明<br>
+                        • 心理的エネルギー圏による理論統合<br>
+                        • 変容プロセスの普遍構造の発見<br><br>
+                        圏論：関係性の数学が多様な学問分野を統一する
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">◀ 前へ</button>
+            <span class="slide-counter">
+                <span id="currentSlide">1</span> / <span id="totalSlides">14</span>
+            </span>
+            <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">次へ ▶</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(index) {
+            slides.forEach(slide => slide.classList.remove('active'));
+            slides[index].classList.add('active');
+            
+            document.getElementById('currentSlide').textContent = index + 1;
+            
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            const newIndex = currentSlideIndex + direction;
+            if (newIndex >= 0 && newIndex < totalSlides) {
+                currentSlideIndex = newIndex;
+                showSlide(currentSlideIndex);
+            }
+        }
+
+        // キーボードナビゲーション
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                changeSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                changeSlide(-1);
+            }
+        });
+
+        // 初期化
+        showSlide(0);
+    </script>
+</body>
+</html>
